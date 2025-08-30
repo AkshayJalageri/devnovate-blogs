@@ -11,28 +11,23 @@ const Home = () => {
   // Popular tags (in a real app, these might come from an API)
   const popularTags = ['JavaScript', 'React', 'Node.js', 'Python', 'Web Development', 'DevOps', 'AI'];
 
-  // Memoize the getBlogs function to prevent infinite loops
-  const fetchBlogs = useCallback((page = 1, limit = 6, search = '', tag = '') => {
-    getBlogs(page, limit, search, tag);
-  }, [getBlogs]);
-
   useEffect(() => {
     // Initial load of blogs
-    fetchBlogs(1, 6);
-  }, [fetchBlogs]);
+    getBlogs(1, 6);
+  }, []); // Only run once on mount
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchBlogs(1, 6, searchTerm, selectedTag);
+    getBlogs(1, 6, searchTerm, selectedTag);
   };
 
   const handleTagClick = (tag) => {
     setSelectedTag(tag === selectedTag ? '' : tag);
-    fetchBlogs(1, 6, searchTerm, tag === selectedTag ? '' : tag);
+    getBlogs(1, 6, searchTerm, tag === selectedTag ? '' : tag);
   };
 
   const handlePageChange = (page) => {
-    fetchBlogs(page, 6, searchTerm, selectedTag);
+    getBlogs(page, 6, searchTerm, selectedTag);
   };
 
   // Format date

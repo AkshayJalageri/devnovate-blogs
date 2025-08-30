@@ -56,7 +56,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id]); // Add user dependency back but handle it properly
+  }, []); // Remove user dependency to prevent infinite loops
 
   // Get trending blogs
   const getTrendingBlogs = useCallback(async () => {
@@ -80,7 +80,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id]); // Add user dependency back but handle it properly
+  }, []); // Remove user dependency to prevent infinite loops
 
   // Get single blog by ID
   const getBlogById = async (id) => {
@@ -314,10 +314,10 @@ export const BlogProvider = ({ children }) => {
     }
   }, []); // Remove user dependency to prevent infinite loops
 
-  // Load trending blogs on initial render and when user changes
+  // Load trending blogs on initial render only
   useEffect(() => {
     getTrendingBlogs();
-  }, [getTrendingBlogs]);
+  }, []); // Only run once on mount
 
   // Load user blogs when user changes
   useEffect(() => {
@@ -328,7 +328,43 @@ export const BlogProvider = ({ children }) => {
       setUserBlogs([]);
       setLikedBlogs([]);
     }
-  }, [user, getUserBlogs, getLikedBlogs]);
+  }, [user]); // Only depend on user, not the functions
+
+  // Update like status of existing blogs when user changes
+  useEffect(() => {
+    if (user) {
+      // Update like status for blogs
+      setBlogs(prevBlogs => 
+        prevBlogs.map(blog => ({
+          ...blog,
+          isLiked: blog.likes.includes(user._id)
+        }))
+      );
+      
+      // Update like status for trending blogs
+      setTrendingBlogs(prevTrendingBlogs => 
+        prevTrendingBlogs.map(blog => ({
+          ...blog,
+          isLiked: blog.likes.includes(user._id)
+        }))
+      );
+    } else {
+      // Clear like status when user logs out
+      setBlogs(prevBlogs => 
+        prevBlogs.map(blog => ({
+          ...blog,
+          isLiked: false
+        }))
+      );
+      
+      setTrendingBlogs(prevTrendingBlogs => 
+        prevTrendingBlogs.map(blog => ({
+          ...blog,
+          isLiked: false
+        }))
+      );
+    }
+  }, [user?._id]); // Only depend on user ID
 
   return (
     <BlogContext.Provider
