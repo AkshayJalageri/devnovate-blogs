@@ -35,6 +35,7 @@ exports.register = async (req, res, next) => {
     // Create new user
     let user;
     try {
+      console.log('🔄 Creating user in database...');
       user = await User.create({
         name,
         email,
@@ -43,6 +44,11 @@ exports.register = async (req, res, next) => {
       console.log('✅ User created successfully:', { id: user._id, email: user.email });
     } catch (createError) {
       console.error('❌ Error creating user:', createError);
+      console.error('❌ Error details:', {
+        name: createError.name,
+        message: createError.message,
+        stack: createError.stack
+      });
       return res.status(400).json({
         success: false,
         message: createError.message || 'Error creating user'
@@ -51,6 +57,7 @@ exports.register = async (req, res, next) => {
 
     // Send welcome email
     try {
+      console.log('✉️ Attempting to send welcome email...');
       if (
         process.env.EMAIL_USERNAME &&
         process.env.EMAIL_PASSWORD &&
@@ -61,22 +68,37 @@ exports.register = async (req, res, next) => {
           email: user.email,
           ...emailTemplates.welcome(user.name)
         });
+        console.log('✅ Welcome email sent successfully');
       } else {
         console.log('✉️ Email sending skipped: Email credentials not configured');
       }
     } catch (error) {
       console.error('❌ Email sending failed:', error);
+      // Don't fail registration if email fails
     }
 
     // Generate token
-    const token = generateToken(user._id, user.role);
+    try {
+      console.log('🔑 Generating JWT token...');
+      const token = generateToken(user._id, user.role);
+      console.log('✅ JWT token generated successfully');
+      
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000
+      });
+      console.log('✅ Cookie set successfully');
+    } catch (tokenError) {
+      console.error('❌ Token generation failed:', tokenError);
+      return res.status(500).json({
+        success: false,
+        message: 'Token generation failed',
+        error: process.env.NODE_ENV === 'development' ? tokenError.message : 'Check server logs'
+      });
+    }
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000
-    });
-
+    console.log('🎉 Registration completed successfully');
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -89,6 +111,11 @@ exports.register = async (req, res, next) => {
     });
   } catch (error) {
     console.error('❌ Registration error (outer catch):', error);
+    console.error('❌ Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       message: 'Registration failed',

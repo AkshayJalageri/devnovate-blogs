@@ -91,6 +91,22 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Environment check endpoint for debugging
+app.get('/env-check', (req, res) => {
+  res.status(200).json({
+    status: 'Environment Check',
+    timestamp: new Date().toISOString(),
+    nodeEnv: process.env.NODE_ENV || 'not set',
+    mongoUri: process.env.MONGODB_URI ? 'set' : 'not set',
+    jwtSecret: process.env.JWT_SECRET ? 'set' : 'not set',
+    jwtExpire: process.env.JWT_EXPIRE || 'not set (using default)',
+    emailUsername: process.env.EMAIL_USERNAME ? 'set' : 'not set',
+    emailPassword: process.env.EMAIL_PASSWORD ? 'set' : 'not set',
+    clientUrl: process.env.CLIENT_URL || 'not set',
+    port: process.env.PORT || 'not set'
+  });
+});
+
 // Default route
 app.get('/', (req, res) => {
   res.send('Welcome to Devnovate Blogs API');
