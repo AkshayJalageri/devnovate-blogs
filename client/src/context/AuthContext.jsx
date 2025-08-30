@@ -1,7 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { jwtDecode } from 'jwt-decode';
 
 export const AuthContext = createContext();
 
@@ -16,7 +15,12 @@ export const AuthProvider = ({ children }) => {
       try {
         // Get user data using cookies for authentication
         const res = await api.get('/auth/me');
-        setUser(res.data.data);
+        if (res.data.success && res.data.data) {
+          setUser(res.data.data);
+          console.log('✅ User authenticated on initial load:', res.data.data);
+        } else {
+          setUser(null);
+        }
       } catch (err) {
         // This is expected if user is not logged in, no need to log as error
         if (err.response && err.response.status === 401) {
@@ -44,22 +48,24 @@ export const AuthProvider = ({ children }) => {
       console.log('Registration response:', res.data);
       
       // After successful registration, set the user data from the response
-      // The backend sends back the user data in the registration response
       if (res.data.success && res.data.user) {
+        // Set user immediately from registration response
         setUser(res.data.user);
         toast.success('Registration successful!');
         
-        // After registration, verify the user is properly authenticated
-        try {
-          const userRes = await api.get('/auth/me');
-          if (userRes.data.success) {
-            setUser(userRes.data.data);
-            console.log('✅ User authenticated after registration:', userRes.data.data);
+        // Wait a moment for cookies to be set, then verify authentication
+        setTimeout(async () => {
+          try {
+            const userRes = await api.get('/auth/me');
+            if (userRes.data.success) {
+              setUser(userRes.data.data);
+              console.log('✅ User authenticated after registration:', userRes.data.data);
+            }
+          } catch (verifyErr) {
+            console.log('⚠️ Could not verify user after registration:', verifyErr.message);
+            // User is still registered, just not fully authenticated yet
           }
-        } catch (verifyErr) {
-          console.log('⚠️ Could not verify user after registration:', verifyErr.message);
-          // This is not critical - the user is still registered
-        }
+        }, 1000);
         
         return true;
       } else {
@@ -86,21 +92,37 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post('/auth/login', { email, password });
       console.log('Login response:', res.data);
       
-      // Token is handled by cookies
-      
-              // Get user data
-        const userRes = await api.get('/auth/me');
-        console.log('User data:', userRes.data);
-        setUser(userRes.data.data);
-      
-      toast.success('Login successful!');
-      return true;
+      // After successful login, get user data to ensure authentication
+      if (res.data.success) {
+        try {
+          const userRes = await api.get('/auth/me');
+          if (userRes.data.success) {
+            setUser(userRes.data.data);
+            console.log('✅ User authenticated after login:', userRes.data.data);
+            toast.success('Login successful!');
+            return true;
+          } else {
+            throw new Error('Failed to get user data after login');
+          }
+        } catch (userErr) {
+          console.error('Error getting user data after login:', userErr);
+          // If we can't get user data, try to use the login response
+          if (res.data.user) {
+            setUser(res.data.user);
+            toast.success('Login successful!');
+            return true;
+          } else {
+            throw new Error('Login successful but user data unavailable');
+          }
+        }
+      } else {
+        throw new Error(res.data.message || 'Login failed');
+      }
     } catch (err) {
       console.error('Login error:', err);
       console.error('Error response:', err.response?.data);
-      console.error('Full error object:', JSON.stringify(err, null, 2));
-      setError(err.response?.data?.message || 'Invalid credentials');
-      toast.error(err.response?.data?.message || 'Invalid credentials');
+      setError(err.response?.data?.message || err.message || 'Invalid credentials');
+      toast.error(err.response?.data?.message || err.message || 'Invalid credentials');
       return false;
     } finally {
       setLoading(false);

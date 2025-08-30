@@ -48,13 +48,15 @@ export const BlogProvider = ({ children }) => {
       
       return res.data;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch blogs');
-      toast.error(err.response?.data?.message || 'Failed to fetch blogs');
+      console.error('Error fetching blogs:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to fetch blogs';
+      setError(errorMessage);
+      toast.error(errorMessage);
       return null;
     } finally {
       setLoading(false);
     }
-  }, []); // Remove user dependency to prevent infinite loops
+  }, [user?._id]); // Add user dependency back but handle it properly
 
   // Get trending blogs
   const getTrendingBlogs = useCallback(async () => {
@@ -78,7 +80,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []); // Remove user dependency to prevent infinite loops
+  }, [user?._id]); // Add user dependency back but handle it properly
 
   // Get single blog by ID
   const getBlogById = async (id) => {
@@ -312,10 +314,10 @@ export const BlogProvider = ({ children }) => {
     }
   }, []); // Remove user dependency to prevent infinite loops
 
-  // Load trending blogs on initial render
+  // Load trending blogs on initial render and when user changes
   useEffect(() => {
     getTrendingBlogs();
-  }, []); // Only run once on mount
+  }, [getTrendingBlogs]);
 
   // Load user blogs when user changes
   useEffect(() => {
@@ -326,7 +328,7 @@ export const BlogProvider = ({ children }) => {
       setUserBlogs([]);
       setLikedBlogs([]);
     }
-  }, [user]); // Only depend on user, not the functions
+  }, [user, getUserBlogs, getLikedBlogs]);
 
   return (
     <BlogContext.Provider

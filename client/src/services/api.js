@@ -81,9 +81,15 @@ api.interceptors.response.use(
     
     // Handle 401 errors (unauthorized) - user needs to login
     if (error.response && error.response.status === 401) {
-      console.log('🔒 User not authenticated, redirecting to login');
+      console.log('🔒 User not authenticated for:', error.config?.url);
       // Don't redirect automatically - let the component handle it
     }
+    
+    // Handle 403 errors (forbidden)
+    if (error.response && error.response.status === 403) {
+      console.log('🚫 User not authorized for:', error.config?.url);
+    }
+    
     return Promise.reject(error);
   }
 );
