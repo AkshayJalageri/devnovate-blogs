@@ -43,14 +43,17 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post('/auth/register', userData);
       console.log('Registration response:', res.data);
       
-      // Token is handled by cookies
-      
-      // Get user data
-      const userRes = await api.get('/auth/me');
-      setUser(userRes.data.data);
-      
-      toast.success('Registration successful!');
-      return true;
+      // After successful registration, set the user data from the response
+      // The backend sends back the user data in the registration response
+      if (res.data.success && res.data.user) {
+        setUser(res.data.user);
+        toast.success('Registration successful!');
+        return true;
+      } else {
+        setError('Registration response was invalid');
+        toast.error('Registration failed: Invalid response');
+        return false;
+      }
     } catch (err) {
       console.error('Registration error:', err);
       console.error('Error response:', err.response?.data);
