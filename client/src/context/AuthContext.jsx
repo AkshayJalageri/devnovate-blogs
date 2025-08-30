@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
       // Token is handled by cookies
       
       // Get user data
-      const userRes = await axios.get('http://localhost:5000/api/auth/me');
+      const userRes = await axios.get('/api/auth/me');
       console.log('User data:', userRes.data);
       setUser(userRes.data.data);
       
