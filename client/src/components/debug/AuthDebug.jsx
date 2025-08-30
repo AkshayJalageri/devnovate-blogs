@@ -12,6 +12,15 @@ const AuthDebug = () => {
     setCookies(document.cookie || 'No cookies');
   }, [user]);
 
+  // Check cookies every few seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCookies(document.cookie || 'No cookies');
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const checkAuthStatus = async () => {
     try {
       const res = await api.get('/auth/me');
@@ -47,6 +56,9 @@ const AuthDebug = () => {
         <div>isAuthenticated: {isAuthenticated ? '✅' : '❌'}</div>
         <div>Auth Status: {authStatus}</div>
         <div>Cookies: {cookies ? 'Present' : 'None'}</div>
+        <div className="text-xs text-gray-300 max-w-xs break-all">
+          {cookies || 'No cookies'}
+        </div>
         <button
           onClick={handleRefreshAuth}
           className="mt-2 px-3 py-1 bg-blue-600 rounded text-xs hover:bg-blue-700"
