@@ -39,10 +39,7 @@ const api = axios.create({
     'Content-Type': 'application/json'
   },
   withCredentials: true,
-  timeout: 10000, // 10 second timeout
-  // Ensure cookies are sent with requests
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN'
+  timeout: 10000 // 10 second timeout
 });
 
 // Add a request interceptor to log all requests
@@ -54,7 +51,8 @@ api.interceptors.request.use(
       fullUrl: config.baseURL + config.url,
       origin: window.location.origin,
       withCredentials: config.withCredentials,
-      cookies: document.cookie ? 'Present' : 'None'
+      cookies: document.cookie || 'None',
+      cookieCount: document.cookie.split(';').filter(c => c.trim()).length
     });
     
     // No token needed - using cookies for authentication
@@ -73,8 +71,15 @@ api.interceptors.response.use(
       status: response.status,
       url: response.config.url,
       data: response.data,
-      cookies: response.headers['set-cookie'] ? 'Set' : 'None'
+      setCookies: response.headers['set-cookie'] || 'None',
+      cookieCount: response.headers['set-cookie'] ? response.headers['set-cookie'].length : 0
     });
+    
+    // Log cookie details if they're being set
+    if (response.headers['set-cookie']) {
+      console.log('🍪 Cookies being set:', response.headers['set-cookie']);
+    }
+    
     return response;
   },
   (error) => {
@@ -89,6 +94,7 @@ api.interceptors.response.use(
     // Handle 401 errors (unauthorized) - user needs to login
     if (error.response && error.response.status === 401) {
       console.log('🔒 User not authenticated for:', error.config?.url);
+      console.log('🔍 Current cookies:', document.cookie || 'None');
       console.log('🔍 Response headers:', error.response?.headers);
       // Don't redirect automatically - let the component handle it
     }

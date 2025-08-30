@@ -36,13 +36,8 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Only check authentication if we don't already have a user
-    if (!user) {
-      checkUserLoggedIn();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+    checkUserLoggedIn();
+  }, []); // Only run once on mount
 
   // Register user
   const register = async (userData) => {
@@ -103,30 +98,9 @@ export const AuthProvider = ({ children }) => {
         console.log('✅ User set from login response:', res.data.user);
         toast.success('Login successful!');
         
-        // Try to verify authentication immediately, then retry after a delay
-        try {
-          const userRes = await api.get('/auth/me');
-          if (userRes.data.success) {
-            setUser(userRes.data.data);
-            console.log('✅ User authenticated immediately after login:', userRes.data.data);
-          }
-        } catch (verifyErr) {
-          console.log('⚠️ Could not verify user immediately after login:', verifyErr.message);
-          
-          // Retry after a delay
-          setTimeout(async () => {
-            try {
-              const userRes = await api.get('/auth/me');
-              if (userRes.data.success) {
-                setUser(userRes.data.data);
-                console.log('✅ User authenticated after delay:', userRes.data.data);
-              }
-            } catch (retryErr) {
-              console.log('⚠️ Could not verify user after retry:', retryErr.message);
-              // User is still logged in from the login response
-            }
-          }, 2000);
-        }
+        // Don't immediately verify - let the cookie settle
+        // The user is already authenticated from the login response
+        console.log('✅ Login successful - user authenticated via response');
         
         return true;
       } else {
