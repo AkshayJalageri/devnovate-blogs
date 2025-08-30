@@ -17,7 +17,7 @@ console.log('🚀 Promoting user to admin role...\n');
 async function promoteToAdmin() {
   try {
     console.log('1️⃣ Calling promote-first-admin endpoint...');
-    const result = await makeRequest('/api/admin/promote-first-admin', 'POST');
+    const result = await makeRequest('/api/auth/promote-first-admin', 'POST');
     
     if (result.success) {
       console.log('✅ User promoted to admin successfully!');
