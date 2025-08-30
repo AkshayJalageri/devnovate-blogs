@@ -54,7 +54,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id]);
+  }, []); // Remove user dependency to prevent infinite loops
 
   // Get trending blogs
   const getTrendingBlogs = useCallback(async () => {
@@ -78,7 +78,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id]);
+  }, []); // Remove user dependency to prevent infinite loops
 
   // Get single blog by ID
   const getBlogById = async (id) => {
@@ -286,7 +286,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id]);
+  }, []); // Remove user dependency to prevent infinite loops
 
   // Get user's liked blogs
   const getLikedBlogs = useCallback(async () => {
@@ -310,12 +310,12 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id]);
+  }, []); // Remove user dependency to prevent infinite loops
 
   // Load trending blogs on initial render
   useEffect(() => {
     getTrendingBlogs();
-  }, [getTrendingBlogs]);
+  }, []); // Only run once on mount
 
   // Load user blogs when user changes
   useEffect(() => {
@@ -326,7 +326,7 @@ export const BlogProvider = ({ children }) => {
       setUserBlogs([]);
       setLikedBlogs([]);
     }
-  }, [user, getUserBlogs, getLikedBlogs]);
+  }, [user]); // Only depend on user, not the functions
 
   return (
     <BlogContext.Provider

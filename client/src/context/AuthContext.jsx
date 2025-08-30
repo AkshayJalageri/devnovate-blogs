@@ -48,6 +48,19 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success && res.data.user) {
         setUser(res.data.user);
         toast.success('Registration successful!');
+        
+        // After registration, verify the user is properly authenticated
+        try {
+          const userRes = await api.get('/auth/me');
+          if (userRes.data.success) {
+            setUser(userRes.data.data);
+            console.log('✅ User authenticated after registration:', userRes.data.data);
+          }
+        } catch (verifyErr) {
+          console.log('⚠️ Could not verify user after registration:', verifyErr.message);
+          // This is not critical - the user is still registered
+        }
+        
         return true;
       } else {
         setError('Registration response was invalid');

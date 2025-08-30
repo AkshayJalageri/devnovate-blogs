@@ -52,10 +52,7 @@ api.interceptors.request.use(
       origin: window.location.origin
     });
     
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
+    // No token needed - using cookies for authentication
     return config;
   },
   (error) => {
@@ -82,15 +79,10 @@ api.interceptors.response.use(
       response: error.response?.data
     });
     
+    // Handle 401 errors (unauthorized) - user needs to login
     if (error.response && error.response.status === 401) {
-      if (
-        error.response.data.message === 'Invalid token' ||
-        error.response.data.message === 'Token expired'
-      ) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
+      console.log('🔒 User not authenticated, redirecting to login');
+      // Don't redirect automatically - let the component handle it
     }
     return Promise.reject(error);
   }
