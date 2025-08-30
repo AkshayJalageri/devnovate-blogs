@@ -1,7 +1,6 @@
 import api from './api';
 
 const AuthService = {
-  // Register a new user
   register: async (userData) => {
     try {
       const response = await api.post('/auth/register', userData);
@@ -11,7 +10,6 @@ const AuthService = {
     }
   },
 
-  // Login user
   login: async (credentials) => {
     try {
       const response = await api.post('/auth/login', credentials);
@@ -25,22 +23,16 @@ const AuthService = {
     }
   },
 
-  // Logout user
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
 
-  // Get current user info
   getCurrentUser: () => {
     const userStr = localStorage.getItem('user');
-    if (userStr) {
-      return JSON.parse(userStr);
-    }
-    return null;
+    return userStr ? JSON.parse(userStr) : null;
   },
 
-  // Update user profile
   updateProfile: async (userData) => {
     try {
       const response = await api.put('/auth/profile', userData);
@@ -53,7 +45,6 @@ const AuthService = {
     }
   },
 
-  // Change password
   changePassword: async (passwordData) => {
     try {
       const response = await api.put('/auth/change-password', passwordData);
@@ -63,7 +54,6 @@ const AuthService = {
     }
   },
 
-  // Request password reset
   forgotPassword: async (email) => {
     try {
       const response = await api.post('/auth/forgot-password', { email });
@@ -73,7 +63,6 @@ const AuthService = {
     }
   },
 
-  // Reset password with token
   resetPassword: async (token, newPassword) => {
     try {
       const response = await api.post('/auth/reset-password', { token, newPassword });
@@ -81,7 +70,7 @@ const AuthService = {
     } catch (error) {
       throw error.response?.data || { message: 'An error occurred while resetting password' };
     }
-  },
+  }
 };
 
 export default AuthService;
