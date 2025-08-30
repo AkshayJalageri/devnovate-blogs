@@ -24,8 +24,8 @@ import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 
 // Debug Components (only for development)
-import AuthDebug from './components/debug/AuthDebug';
-import ApiDebug from './components/debug/ApiDebug';
+// import AuthDebug from './components/debug/AuthDebug';
+// import ApiDebug from './components/debug/ApiDebug';
 
 // Protected Routes
 import ProtectedRoute from './components/routing/ProtectedRoute';
@@ -40,13 +40,6 @@ function App() {
             <Navbar />
             <main className="flex-grow">
               <ToastContainer position="top-right" autoClose={3000} />
-              {/* Debug components only in development */}
-              {import.meta.env.DEV && (
-                <>
-                  <AuthDebug />
-                  <ApiDebug />
-                </>
-              )}
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
