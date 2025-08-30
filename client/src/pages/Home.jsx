@@ -12,8 +12,19 @@ const Home = () => {
   const popularTags = ['JavaScript', 'React', 'Node.js', 'Python', 'Web Development', 'DevOps', 'AI'];
 
   useEffect(() => {
-    // Initial load of blogs
-    getBlogs(1, 6);
+    let isMounted = true;
+    
+    const loadBlogs = async () => {
+      if (isMounted) {
+        await getBlogs(1, 6);
+      }
+    };
+    
+    loadBlogs();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []); // Only run once on mount
 
   const handleSearch = (e) => {
@@ -105,12 +116,12 @@ const Home = () => {
               <h3 className="text-sm font-medium text-red-800">Error loading blogs</h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>{error}</p>
-                <button 
-                  onClick={() => fetchBlogs(1, 6)}
-                  className="mt-2 text-red-800 underline hover:text-red-900"
-                >
-                  Try again
-                </button>
+                                 <button 
+                   onClick={() => getBlogs(1, 6)}
+                   className="mt-2 text-red-800 underline hover:text-red-900"
+                 >
+                   Try again
+                 </button>
               </div>
             </div>
           </div>

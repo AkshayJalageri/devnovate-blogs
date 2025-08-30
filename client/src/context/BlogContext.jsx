@@ -24,6 +24,12 @@ export const BlogProvider = ({ children }) => {
 
   // Get all published blogs with pagination, search, and filtering
   const getBlogs = useCallback(async (page = 1, limit = 10, search = '', tag = '', author = '') => {
+    // Prevent multiple simultaneous calls
+    if (loading) {
+      console.log('Blog fetch already in progress, skipping...');
+      return null;
+    }
+    
     try {
       setLoading(true);
       setError(null); // Clear any previous errors
@@ -31,8 +37,9 @@ export const BlogProvider = ({ children }) => {
         params: { page, limit, search, tag, author }
       });
       
-      // Add isLiked property to each blog
-      const userId = user?._id;
+      // Add isLiked property to each blog - get user from context at call time
+      const currentUser = user; // Get current user at call time
+      const userId = currentUser?._id;
       const blogsWithLikeStatus = res.data.data.map(blog => ({
         ...blog,
         isLiked: userId ? blog.likes.includes(userId) : false
@@ -56,17 +63,24 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []); // Remove user dependency to prevent infinite loops
+  }, [loading]); // Only depend on loading state
 
   // Get trending blogs
   const getTrendingBlogs = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (loading) {
+      console.log('Trending blogs fetch already in progress, skipping...');
+      return null;
+    }
+    
     try {
       setLoading(true);
       setError(null); // Clear any previous errors
       const res = await api.get('/blogs/trending');
       
-      // Add isLiked property to each trending blog
-      const userId = user?._id;
+      // Add isLiked property to each trending blog - get user from context at call time
+      const currentUser = user; // Get current user at call time
+      const userId = currentUser?._id;
       const trendingBlogsWithLikeStatus = res.data.data.map(blog => ({
         ...blog,
         isLiked: userId ? blog.likes.includes(userId) : false
@@ -80,7 +94,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []); // Remove user dependency to prevent infinite loops
+  }, [loading]); // Only depend on loading state
 
   // Get single blog by ID
   const getBlogById = async (id) => {
@@ -316,7 +330,19 @@ export const BlogProvider = ({ children }) => {
 
   // Load trending blogs on initial render only
   useEffect(() => {
-    getTrendingBlogs();
+    let isMounted = true;
+    
+    const loadTrendingBlogs = async () => {
+      if (isMounted) {
+        await getTrendingBlogs();
+      }
+    };
+    
+    loadTrendingBlogs();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []); // Only run once on mount
 
   // Load user blogs when user changes
