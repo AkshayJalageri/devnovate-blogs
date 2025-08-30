@@ -25,6 +25,7 @@ import { BlogProvider } from './context/BlogContext';
 
 // Debug Components
 import AuthDebug from './components/debug/AuthDebug';
+import ApiDebug from './components/debug/ApiDebug';
 
 // Protected Routes
 import ProtectedRoute from './components/routing/ProtectedRoute';
@@ -40,6 +41,7 @@ function App() {
             <main className="flex-grow">
               <ToastContainer position="top-right" autoClose={3000} />
               <AuthDebug />
+              <ApiDebug />
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
