@@ -14,8 +14,20 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Configure CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://devnovate-blogs.vercel.app' // We'll add this after creating the frontend deployment
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(cookieParser());

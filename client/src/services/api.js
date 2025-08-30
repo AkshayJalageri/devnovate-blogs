@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get the API URL from environment variables or use a default
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://devnovate-blogs-api.onrender.com/api';
 
 // Create axios instance with base URL
 const api = axios.create({
