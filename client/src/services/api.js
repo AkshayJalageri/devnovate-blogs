@@ -2,17 +2,23 @@ import axios from 'axios';
 
 // Get API URL from environment variables with fallbacks
 const getApiUrl = () => {
-  // Check for Vercel environment variable first
+  // Force production URL for any non-localhost environment
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    const productionUrl = 'https://devnovate-blogs-api.onrender.com/api';
+    console.log('🔧 FORCED: Using production URL for non-localhost:', productionUrl);
+    return productionUrl;
+  }
+  
+  // Check for Vercel environment variable
   if (import.meta.env.VITE_API_URL) {
     console.log('🔧 Using VITE_API_URL:', import.meta.env.VITE_API_URL);
     return import.meta.env.VITE_API_URL;
   }
   
-  // Check for production environment or Vercel deployment
-  if (import.meta.env.PROD || window.location.hostname !== 'localhost') {
-    // Default to Render backend for production
+  // Check for production environment
+  if (import.meta.env.PROD) {
     const productionUrl = 'https://devnovate-blogs-api.onrender.com/api';
-    console.log('🔧 Using production URL:', productionUrl);
+    console.log('🔧 Using production URL for PROD:', productionUrl);
     return productionUrl;
   }
   
@@ -28,6 +34,8 @@ console.log('🔧 API Configuration:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
   PROD: import.meta.env.PROD,
   DEV: import.meta.env.DEV,
+  hostname: window.location.hostname,
+  isLocalhost: window.location.hostname === 'localhost',
   finalApiUrl: API_URL,
   currentOrigin: window.location.origin
 });
