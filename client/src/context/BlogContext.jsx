@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import { AuthContext } from './AuthContext';
 
@@ -26,7 +26,7 @@ export const BlogProvider = ({ children }) => {
   const getBlogs = async (page = 1, limit = 10, search = '', tag = '', author = '') => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/blogs', {
+      const res = await api.get('/blogs', {
         params: { page, limit, search, tag, author }
       });
       
@@ -59,7 +59,7 @@ export const BlogProvider = ({ children }) => {
   const getTrendingBlogs = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/blogs/trending');
+      const res = await api.get('/blogs/trending');
       
       // Add isLiked property to each trending blog
       const userId = user?._id;
@@ -99,7 +99,7 @@ export const BlogProvider = ({ children }) => {
         return currentBlog;
       }
       
-      const res = await axios.get(`/api/blogs/${id}`);
+      const res = await api.get(`/blogs/${id}`);
       const blogData = res.data.data;
       
       // Ensure blog data is valid before setting
@@ -134,7 +134,7 @@ export const BlogProvider = ({ children }) => {
   const createBlog = async (blogData) => {
     try {
       setLoading(true);
-      const res = await axios.post('/api/blogs', blogData);
+      const res = await api.post('/blogs', blogData);
       toast.success('Blog submitted for review');
       return res.data.data;
     } catch (err) {
@@ -150,7 +150,7 @@ export const BlogProvider = ({ children }) => {
   const updateBlog = async (id, blogData) => {
     try {
       setLoading(true);
-      const res = await axios.put(`/api/blogs/${id}`, blogData);
+      const res = await api.put(`/blogs/${id}`, blogData);
       toast.success('Blog updated successfully');
       
       // Update current blog if it's the one being viewed
@@ -175,7 +175,7 @@ export const BlogProvider = ({ children }) => {
   const deleteBlog = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`/api/blogs/${id}`);
+      await api.delete(`/blogs/${id}`);
       
       // Remove from blogs list
       setBlogs(blogs.filter(blog => blog._id !== id));
@@ -197,7 +197,7 @@ export const BlogProvider = ({ children }) => {
   // Like/unlike blog
   const likeBlog = async (id) => {
     try {
-      const res = await axios.put(`/api/blogs/${id}/like`);
+      const res = await api.put(`/blogs/${id}/like`);
       
       // Check if the user's ID is in the likes array to determine isLiked status
       const userId = user?._id;
@@ -240,7 +240,7 @@ export const BlogProvider = ({ children }) => {
   // Add comment to blog
   const addComment = async (blogId, content, parentId = null) => {
     try {
-      const res = await axios.post(`/api/blogs/${blogId}/comments`, {
+      const res = await api.post(`/blogs/${blogId}/comments`, {
         content,
         parentId
       });
@@ -267,7 +267,7 @@ export const BlogProvider = ({ children }) => {
     
     try {
       setLoading(true);
-      const res = await axios.get('/api/users/blogs');
+      const res = await api.get('/users/blogs');
       
       // Add isLiked property to each user blog
       const userId = user?._id;
@@ -292,7 +292,7 @@ export const BlogProvider = ({ children }) => {
     
     try {
       setLoading(true);
-      const res = await axios.get('/api/users/liked-blogs');
+      const res = await api.get('/users/liked-blogs');
       
       // These blogs are already liked by the user
       const likedBlogsWithStatus = res.data.data.map(blog => ({

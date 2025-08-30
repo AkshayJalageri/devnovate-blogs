@@ -1,5 +1,5 @@
-import { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { createContext, useState, useEffect, useContext } from 'react';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import { jwtDecode } from 'jwt-decode';
 
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     const checkUserLoggedIn = async () => {
       try {
         // Get user data using cookies for authentication
-        const res = await axios.get('/api/auth/me');
+        const res = await api.get('/auth/me');
         setUser(res.data.data);
       } catch (err) {
         // This is expected if user is not logged in, no need to log as error
@@ -40,20 +40,17 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       console.log('Registering user with data:', userData);
-      const res = await axios.post('/api/auth/register', userData);
+      const res = await api.post('/auth/register', userData);
       console.log('Registration response:', res.data);
       
-      // After successful registration, set the user data from the response
-      // The backend sends back the user data in the registration response
-      if (res.data.success && res.data.user) {
-        setUser(res.data.user);
-        toast.success('Registration successful!');
-        return true;
-      } else {
-        setError('Registration response was invalid');
-        toast.error('Registration failed: Invalid response');
-        return false;
-      }
+      // Token is handled by cookies
+      
+      // Get user data
+      const userRes = await api.get('/auth/me');
+      setUser(userRes.data.data);
+      
+      toast.success('Registration successful!');
+      return true;
     } catch (err) {
       console.error('Registration error:', err);
       console.error('Error response:', err.response?.data);
@@ -70,15 +67,15 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       console.log('Attempting login with:', { email, password: '********' });
-      const res = await axios.post('/api/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email, password });
       console.log('Login response:', res.data);
       
       // Token is handled by cookies
       
-      // Get user data
-      const userRes = await axios.get('/api/auth/me');
-      console.log('User data:', userRes.data);
-      setUser(userRes.data.data);
+              // Get user data
+        const userRes = await api.get('/auth/me');
+        console.log('User data:', userRes.data);
+        setUser(userRes.data.data);
       
       toast.success('Login successful!');
       return true;
@@ -98,7 +95,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       // Call the server to clear the cookie
-      await axios.post('/api/auth/logout');
+      await api.post('/auth/logout');
       setUser(null);
       toast.info('Logged out successfully');
     } catch (err) {
@@ -113,7 +110,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (userData) => {
     try {
       setLoading(true);
-      const res = await axios.put('/api/users/profile', userData);
+      const res = await api.put('/users/profile', userData);
       setUser(res.data.data);
       toast.success('Profile updated successfully');
       return true;
@@ -130,7 +127,7 @@ export const AuthProvider = ({ children }) => {
   const forgotPassword = async (email) => {
     try {
       setLoading(true);
-      await axios.post('/api/auth/forgot-password', { email });
+      await api.post('/auth/forgot-password', { email });
       toast.success('Password reset email sent');
       return true;
     } catch (err) {
@@ -146,7 +143,7 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (password, token) => {
     try {
       setLoading(true);
-      await axios.put(`/api/auth/reset-password/${token}`, { password });
+      await api.put(`/auth/reset-password/${token}`, { password });
       toast.success('Password reset successful. Please login.');
       return true;
     } catch (err) {
