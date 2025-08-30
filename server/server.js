@@ -15,7 +15,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configure CORS with more flexible origin handling
+// Configure CORS with environment variable support
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -25,11 +25,19 @@ const allowedOrigins = [
   'https://devnovate-blogs-git-master.vercel.app'
 ];
 
+// Add CLIENT_URL from environment variables if it exists
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 // Add any additional origins from environment variables
 if (process.env.ALLOWED_ORIGINS) {
   const additionalOrigins = process.env.ALLOWED_ORIGINS.split(',');
   allowedOrigins.push(...additionalOrigins);
 }
+
+// Remove duplicates
+const uniqueOrigins = [...new Set(allowedOrigins)];
 
 app.use(cors({
   origin: function(origin, callback) {
@@ -37,7 +45,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
     
     // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    if (uniqueOrigins.includes(origin)) {
       return callback(null, true);
     }
     
@@ -48,6 +56,7 @@ app.use(cors({
     
     // Log blocked origins for debugging
     console.log('Blocked origin:', origin);
+    console.log('Allowed origins:', uniqueOrigins);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -75,7 +84,10 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    clientUrl: process.env.CLIENT_URL || 'not set',
+    allowedOrigins: uniqueOrigins
   });
 });
 
@@ -104,7 +116,8 @@ mongoose
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
+      console.log(`Client URL: ${process.env.CLIENT_URL || 'not set'}`);
+      console.log(`Allowed origins: ${uniqueOrigins.join(', ')}`);
     });
   })
   .catch((err) => {
