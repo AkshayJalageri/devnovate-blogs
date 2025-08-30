@@ -10,12 +10,20 @@ const crypto = require('crypto');
  */
 exports.register = async (req, res, next) => {
   try {
-    console.log('Registration request received:', req.body);
+    console.log('📩 Registration request received:', req.body);
     const { name, email, password } = req.body;
+
+    // Validate input
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name, email and password are required'
+      });
+    }
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
-    console.log('User exists check:', { exists: !!userExists, email });
+    console.log('🔎 User exists check:', { exists: !!userExists, email });
 
     if (userExists) {
       return res.status(400).json({
@@ -32,9 +40,9 @@ exports.register = async (req, res, next) => {
         email,
         password
       });
-      console.log('User created successfully:', { id: user._id, email: user.email });
+      console.log('✅ User created successfully:', { id: user._id, email: user.email });
     } catch (createError) {
-      console.error('Error creating user:', createError);
+      console.error('❌ Error creating user:', createError);
       return res.status(400).json({
         success: false,
         message: createError.message || 'Error creating user'
@@ -43,29 +51,30 @@ exports.register = async (req, res, next) => {
 
     // Send welcome email
     try {
-      // Check if email credentials are properly configured
-      if (process.env.EMAIL_USERNAME !== 'your-email@gmail.com' && 
-          process.env.EMAIL_PASSWORD !== 'your-app-password') {
+      if (
+        process.env.EMAIL_USERNAME &&
+        process.env.EMAIL_PASSWORD &&
+        process.env.EMAIL_USERNAME !== 'your_email' &&
+        process.env.EMAIL_PASSWORD !== 'your_email_app_password'
+      ) {
         await sendEmail({
           email: user.email,
           ...emailTemplates.welcome(user.name)
         });
       } else {
-        console.log('Email sending skipped: Email credentials not configured');
+        console.log('✉️ Email sending skipped: Email credentials not configured');
       }
     } catch (error) {
-      console.error('Email sending failed:', error);
-      // Continue with registration even if email fails
+      console.error('❌ Email sending failed:', error);
     }
 
     // Generate token
     const token = generateToken(user._id, user.role);
 
-    // Set token as HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
     res.status(201).json({
@@ -79,7 +88,12 @@ exports.register = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    console.error('❌ Registration error (outer catch):', error);
+    res.status(500).json({
+      success: false,
+      message: 'Registration failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Check server logs'
+    });
   }
 };
 
@@ -91,8 +105,9 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log('🔑 Login attempt:', { email });
 
-    // Validate email & password
+    // Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -102,32 +117,31 @@ exports.login = async (req, res, next) => {
 
     // Check for user
     const user = await User.findOne({ email }).select('+password');
-
     if (!user) {
+      console.warn('⚠️ Login failed: User not found', { email });
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid credentials (user not found)'
       });
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
-
     if (!isMatch) {
+      console.warn('⚠️ Login failed: Wrong password', { email });
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid credentials (wrong password)'
       });
     }
 
     // Generate token
     const token = generateToken(user._id, user.role);
 
-    // Set token as HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
     res.status(200).json({
@@ -141,7 +155,12 @@ exports.login = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    console.error('❌ Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Check server logs'
+    });
   }
 };
 
@@ -153,12 +172,12 @@ exports.login = async (req, res, next) => {
 exports.getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-
     res.status(200).json({
       success: true,
       data: user
     });
   } catch (error) {
+    console.error('❌ GetMe error:', error);
     next(error);
   }
 };
@@ -198,19 +217,11 @@ exports.forgotPassword = async (req, res, next) => {
 
     // Generate reset token
     const resetToken = crypto.randomBytes(20).toString('hex');
-
-    // Hash token and set to resetPasswordToken field
-    user.resetPasswordToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
-
-    // Set expire
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
     await user.save({ validateBeforeSave: false });
 
-    // Create reset URL
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
     try {
@@ -226,7 +237,6 @@ exports.forgotPassword = async (req, res, next) => {
     } catch (error) {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
-
       await user.save({ validateBeforeSave: false });
 
       return res.status(500).json({
@@ -235,6 +245,7 @@ exports.forgotPassword = async (req, res, next) => {
       });
     }
   } catch (error) {
+    console.error('❌ ForgotPassword error:', error);
     next(error);
   }
 };
@@ -246,11 +257,7 @@ exports.forgotPassword = async (req, res, next) => {
  */
 exports.resetPassword = async (req, res, next) => {
   try {
-    // Get hashed token
-    const resetPasswordToken = crypto
-      .createHash('sha256')
-      .update(req.params.resettoken)
-      .digest('hex');
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex');
 
     const user = await User.findOne({
       resetPasswordToken,
@@ -264,14 +271,11 @@ exports.resetPassword = async (req, res, next) => {
       });
     }
 
-    // Set new password
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-
     await user.save();
 
-    // Generate new token
     const token = generateToken(user._id, user.role);
 
     res.status(200).json({
@@ -280,6 +284,7 @@ exports.resetPassword = async (req, res, next) => {
       token
     });
   } catch (error) {
+    console.error('❌ ResetPassword error:', error);
     next(error);
   }
 };
@@ -293,9 +298,7 @@ exports.updatePassword = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select('+password');
 
-    // Check current password
     const isMatch = await user.matchPassword(req.body.currentPassword);
-
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -303,11 +306,9 @@ exports.updatePassword = async (req, res, next) => {
       });
     }
 
-    // Set new password
     user.password = req.body.newPassword;
     await user.save();
 
-    // Generate new token
     const token = generateToken(user._id, user.role);
 
     res.status(200).json({
@@ -316,6 +317,7 @@ exports.updatePassword = async (req, res, next) => {
       token
     });
   } catch (error) {
+    console.error('❌ UpdatePassword error:', error);
     next(error);
   }
 };
