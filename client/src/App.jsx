@@ -23,9 +23,7 @@ import TestLogin from './pages/TestLogin';
 import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 
-// Debug Components (only for development)
-// import AuthDebug from './components/debug/AuthDebug';
-// import ApiDebug from './components/debug/ApiDebug';
+// Debug Components removed
 
 // Protected Routes
 import ProtectedRoute from './components/routing/ProtectedRoute';

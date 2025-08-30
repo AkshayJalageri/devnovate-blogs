@@ -5,7 +5,7 @@ import { AuthContext } from '../../context/AuthContext';
 const AdminRoute = ({ children }) => {
   const { isAuthenticated, isAdmin, loading, user } = useContext(AuthContext);
 
-  console.log('AdminRoute debug:', { isAuthenticated, isAdmin, loading, user });
+  // Debug logging removed
 
   // Show loading spinner or placeholder while checking authentication
   if (loading) {
