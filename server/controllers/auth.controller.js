@@ -85,7 +85,7 @@ exports.register = async (req, res, next) => {
       
       res.cookie('token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true, // Always secure for cross-origin
         sameSite: 'none',
         maxAge: 30 * 24 * 60 * 60 * 1000
       });
@@ -168,7 +168,7 @@ exports.login = async (req, res, next) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true, // Always secure for cross-origin
       sameSite: 'none',
       maxAge: 30 * 24 * 60 * 60 * 1000
     });
@@ -220,7 +220,7 @@ exports.logout = (req, res) => {
   res.cookie('token', 'none', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true, // Always secure for cross-origin
     sameSite: 'none'
   });
 
