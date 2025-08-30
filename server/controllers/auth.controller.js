@@ -86,6 +86,7 @@ exports.register = async (req, res, next) => {
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'none',
         maxAge: 30 * 24 * 60 * 60 * 1000
       });
       console.log('✅ Cookie set successfully');
@@ -168,6 +169,7 @@ exports.login = async (req, res, next) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
       maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
@@ -217,7 +219,9 @@ exports.getMe = async (req, res, next) => {
 exports.logout = (req, res) => {
   res.cookie('token', 'none', {
     expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none'
   });
 
   res.status(200).json({
