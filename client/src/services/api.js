@@ -1,14 +1,16 @@
 import axios from 'axios';
 
-// Get the API URL from environment variables or use a default
-const API_URL = import.meta.env.VITE_API_URL || 'https://devnovate-blogs-api.onrender.com/api';
+// Get API URL from environment variables (set this in Vercel: VITE_API_URL=https://devnovate-blogs-api.onrender.com/api)
+const API_URL =
+  import.meta.env.VITE_API_URL || 'https://devnovate-blogs-api.onrender.com/api';
 
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true
 });
 
 // Add a request interceptor to include auth token in requests
@@ -20,22 +22,18 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Add a response interceptor to handle common errors
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Handle token expiration
     if (error.response && error.response.status === 401) {
-      // Clear local storage and redirect to login if token is invalid/expired
-      if (error.response.data.message === 'Invalid token' || 
-          error.response.data.message === 'Token expired') {
+      if (
+        error.response.data.message === 'Invalid token' ||
+        error.response.data.message === 'Token expired'
+      ) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
