@@ -78,6 +78,7 @@ function makeRequest(path, method, data = null) {
           const response = JSON.parse(responseData);
           resolve(response);
         } catch (error) {
+          console.log('Raw response:', responseData);
           resolve({ success: false, message: 'Invalid JSON response', raw: responseData });
         }
       });

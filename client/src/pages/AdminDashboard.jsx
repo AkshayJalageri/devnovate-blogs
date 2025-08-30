@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
+import { toast } from 'react-toastify';
 import { FiUsers, FiFileText, FiCheckCircle, FiXCircle, FiEye, FiAlertTriangle, FiCheck, FiX, FiTrash2 } from 'react-icons/fi';
 
 const AdminDashboard = () => {
@@ -13,8 +14,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_URL = 'http://localhost:5000/api';
-
   useEffect(() => {
     if (user?.role !== 'admin') return;
     
@@ -24,19 +23,19 @@ const AdminDashboard = () => {
       
       try {
         if (activeTab === 'dashboard') {
-          const response = await axios.get(`${API_URL}/admin/stats`);
+          const response = await api.get('/admin/stats');
           console.log('Stats response:', response.data);
           setStats(response.data.data);
         } else if (activeTab === 'pending-blogs') {
-          const response = await axios.get(`${API_URL}/admin/blogs/pending`);
+          const response = await api.get('/admin/blogs/pending');
           console.log('Pending blogs response:', response.data);
           setPendingBlogs(response.data.data);
         } else if (activeTab === 'all-blogs') {
-          const response = await axios.get(`${API_URL}/admin/blogs`);
+          const response = await api.get('/admin/blogs');
           console.log('All blogs response:', response.data);
           setAllBlogs(response.data.data);
         } else if (activeTab === 'users') {
-          const response = await axios.get(`${API_URL}/admin/users`);
+          const response = await api.get('/admin/users');
           console.log('Users response:', response.data);
           setUsers(response.data.data);
         }
@@ -53,30 +52,38 @@ const AdminDashboard = () => {
 
   const handleBlogAction = async (blogId, action) => {
     try {
+      setError(null);
+      
       if (action === 'delete') {
-        await axios.delete(`${API_URL}/admin/blogs/${blogId}`);
+        await api.delete(`/admin/blogs/${blogId}`);
         // Update both lists after deletion
         setAllBlogs(allBlogs.filter(blog => blog._id !== blogId));
         setPendingBlogs(pendingBlogs.filter(blog => blog._id !== blogId));
+        toast.success('Blog deleted successfully');
       } else {
-        await axios.put(
-          `${API_URL}/admin/blogs/${blogId}/${action}`,
+        await api.put(
+          `/admin/blogs/${blogId}/${action}`,
           {}
         );
         // For approve/reject actions
         const updatedBlog = {...allBlogs.find(blog => blog._id === blogId), status: action === 'approve' ? 'published' : 'rejected'};
         setAllBlogs(allBlogs.map(blog => blog._id === blogId ? updatedBlog : blog));
         setPendingBlogs(pendingBlogs.filter(blog => blog._id !== blogId));
+        toast.success(`Blog ${action}d successfully`);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred');
+      const errorMessage = err.response?.data?.message || 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
   const handleUserRoleUpdate = async (userId, newRole) => {
     try {
-      await axios.put(
-        `${API_URL}/admin/users/${userId}/role`,
+      setError(null);
+      
+      await api.put(
+        `/admin/users/${userId}/role`,
         { role: newRole }
       );
       
@@ -87,8 +94,12 @@ const AdminDashboard = () => {
         }
         return user;
       }));
+      
+      toast.success(`User role updated to ${newRole}`);
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred');
+      const errorMessage = err.response?.data?.message || 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -116,57 +127,78 @@ const AdminDashboard = () => {
       
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <FiAlertTriangle className="h-5 w-5 text-red-500" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <FiAlertTriangle className="h-5 w-5 text-red-500" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <FiX className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
       
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
+        <div className="flex justify-between items-center">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`${activeTab === 'dashboard' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('pending-blogs')}
+              className={`${activeTab === 'pending-blogs' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Pending Blogs
+            </button>
+            <button
+              onClick={() => setActiveTab('all-blogs')}
+              className={`${activeTab === 'all-blogs' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              All Blogs
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`${activeTab === 'users' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Manage Users
+            </button>
+          </nav>
           <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`${activeTab === 'dashboard' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-              whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              // This will trigger the useEffect to refetch data
+            }}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
-            Dashboard
+            {loading ? 'Loading...' : 'Refresh'}
           </button>
-          <button
-            onClick={() => setActiveTab('pending-blogs')}
-            className={`${activeTab === 'pending-blogs' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-              whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-          >
-            Pending Blogs
-          </button>
-          <button
-            onClick={() => setActiveTab('all-blogs')}
-            className={`${activeTab === 'all-blogs' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-              whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-          >
-            All Blogs
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`${activeTab === 'users' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-              whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-          >
-            Manage Users
-          </button>
-        </nav>
+        </div>
       </div>
       
       {/* Tab Content */}
