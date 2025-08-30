@@ -1,17 +1,22 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5000', // Local dev backend
         changeOrigin: true,
         secure: false,
-        withCredentials: true
       }
     }
+  },
+  define: {
+    __API_BASE_URL__: JSON.stringify(
+      process.env.NODE_ENV === 'production'
+        ? 'https://devnovate-blogs-api.onrender.com' // Render backend
+        : 'http://localhost:5000'
+    )
   }
 })
