@@ -92,29 +92,27 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post('/auth/login', { email, password });
       console.log('Login response:', res.data);
       
-      // After successful login, get user data to ensure authentication
-      if (res.data.success) {
-        try {
-          const userRes = await api.get('/auth/me');
-          if (userRes.data.success) {
-            setUser(userRes.data.data);
-            console.log('✅ User authenticated after login:', userRes.data.data);
-            toast.success('Login successful!');
-            return true;
-          } else {
-            throw new Error('Failed to get user data after login');
+      // After successful login, set user from response immediately
+      if (res.data.success && res.data.user) {
+        setUser(res.data.user);
+        console.log('✅ User set from login response:', res.data.user);
+        toast.success('Login successful!');
+        
+        // Wait a moment for cookies to be set, then verify authentication
+        setTimeout(async () => {
+          try {
+            const userRes = await api.get('/auth/me');
+            if (userRes.data.success) {
+              setUser(userRes.data.data);
+              console.log('✅ User authenticated after login:', userRes.data.data);
+            }
+          } catch (verifyErr) {
+            console.log('⚠️ Could not verify user after login:', verifyErr.message);
+            // User is still logged in from the login response
           }
-        } catch (userErr) {
-          console.error('Error getting user data after login:', userErr);
-          // If we can't get user data, try to use the login response
-          if (res.data.user) {
-            setUser(res.data.user);
-            toast.success('Login successful!');
-            return true;
-          } else {
-            throw new Error('Login successful but user data unavailable');
-          }
-        }
+        }, 1000);
+        
+        return true;
       } else {
         throw new Error(res.data.message || 'Login failed');
       }

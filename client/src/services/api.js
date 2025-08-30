@@ -39,7 +39,10 @@ const api = axios.create({
     'Content-Type': 'application/json'
   },
   withCredentials: true,
-  timeout: 10000 // 10 second timeout
+  timeout: 10000, // 10 second timeout
+  // Ensure cookies are sent with requests
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN'
 });
 
 // Add a request interceptor to log all requests
@@ -49,7 +52,9 @@ api.interceptors.request.use(
       method: config.method?.toUpperCase(),
       url: config.url,
       fullUrl: config.baseURL + config.url,
-      origin: window.location.origin
+      origin: window.location.origin,
+      withCredentials: config.withCredentials,
+      cookies: document.cookie ? 'Present' : 'None'
     });
     
     // No token needed - using cookies for authentication
@@ -67,7 +72,8 @@ api.interceptors.response.use(
     console.log('✅ API Response:', {
       status: response.status,
       url: response.config.url,
-      data: response.data
+      data: response.data,
+      cookies: response.headers['set-cookie'] ? 'Set' : 'None'
     });
     return response;
   },
@@ -76,12 +82,14 @@ api.interceptors.response.use(
       status: error.response?.status,
       url: error.config?.url,
       message: error.message,
-      response: error.response?.data
+      response: error.response?.data,
+      headers: error.response?.headers
     });
     
     // Handle 401 errors (unauthorized) - user needs to login
     if (error.response && error.response.status === 401) {
       console.log('🔒 User not authenticated for:', error.config?.url);
+      console.log('🔍 Response headers:', error.response?.headers);
       // Don't redirect automatically - let the component handle it
     }
     
