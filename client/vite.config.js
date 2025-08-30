@@ -23,12 +23,5 @@ export default defineConfig({
         }
       }
     }
-  },
-  define: {
-    __API_BASE_URL__: JSON.stringify(
-      process.env.NODE_ENV === 'production'
-        ? (import.meta.env.VITE_API_URL || 'https://devnovate-blogs-api.onrender.com')
-        : 'http://localhost:5000'
-    )
   }
 })

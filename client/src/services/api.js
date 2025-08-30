@@ -19,6 +19,13 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
+console.log('🔧 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  PROD: import.meta.env.PROD,
+  DEV: import.meta.env.DEV,
+  finalApiUrl: API_URL
+});
+
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
