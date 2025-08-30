@@ -1,33 +1,38 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { BlogContext } from '../context/BlogContext';
 import { FiClock, FiEye, FiHeart, FiSearch, FiTag } from 'react-icons/fi';
 
 const Home = () => {
-  const { blogs, trendingBlogs, loading, pagination, getBlogs } = useContext(BlogContext);
+  const { blogs, trendingBlogs, loading, pagination, getBlogs, error } = useContext(BlogContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   
   // Popular tags (in a real app, these might come from an API)
   const popularTags = ['JavaScript', 'React', 'Node.js', 'Python', 'Web Development', 'DevOps', 'AI'];
 
+  // Memoize the getBlogs function to prevent infinite loops
+  const fetchBlogs = useCallback((page = 1, limit = 6, search = '', tag = '') => {
+    getBlogs(page, limit, search, tag);
+  }, [getBlogs]);
+
   useEffect(() => {
     // Initial load of blogs
-    getBlogs(1, 6);
-  }, []);
+    fetchBlogs(1, 6);
+  }, [fetchBlogs]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    getBlogs(1, 6, searchTerm, selectedTag);
+    fetchBlogs(1, 6, searchTerm, selectedTag);
   };
 
   const handleTagClick = (tag) => {
     setSelectedTag(tag === selectedTag ? '' : tag);
-    getBlogs(1, 6, searchTerm, tag === selectedTag ? '' : tag);
+    fetchBlogs(1, 6, searchTerm, tag === selectedTag ? '' : tag);
   };
 
   const handlePageChange = (page) => {
-    getBlogs(page, 6, searchTerm, selectedTag);
+    fetchBlogs(page, 6, searchTerm, selectedTag);
   };
 
   // Format date
@@ -91,6 +96,31 @@ const Home = () => {
           ))}
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-8 bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error loading blogs</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+                <button 
+                  onClick={() => fetchBlogs(1, 6)}
+                  className="mt-2 text-red-800 underline hover:text-red-900"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Trending Blogs */}
       <section className="mb-12">
@@ -159,7 +189,7 @@ const Home = () => {
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-        ) : (
+        ) : blogs && blogs.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blogs && blogs.map(blog => (
@@ -260,6 +290,26 @@ const Home = () => {
               </div>
             )}
           </>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No blogs found</h3>
+            <p className="text-gray-500 mb-4">
+              {error ? 'There was an error loading blogs.' : 'Be the first to create a blog post!'}
+            </p>
+            {!error && (
+              <Link 
+                to="/create-blog" 
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
+              >
+                Create Your First Blog
+              </Link>
+            )}
+          </div>
         )}
       </section>
     </div>

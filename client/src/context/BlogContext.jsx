@@ -26,6 +26,7 @@ export const BlogProvider = ({ children }) => {
   const getBlogs = async (page = 1, limit = 10, search = '', tag = '', author = '') => {
     try {
       setLoading(true);
+      setError(null); // Clear any previous errors
       const res = await api.get('/blogs', {
         params: { page, limit, search, tag, author }
       });
@@ -59,6 +60,7 @@ export const BlogProvider = ({ children }) => {
   const getTrendingBlogs = async () => {
     try {
       setLoading(true);
+      setError(null); // Clear any previous errors
       const res = await api.get('/blogs/trending');
       
       // Add isLiked property to each trending blog
