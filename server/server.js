@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 // Configure CORS
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://devnovate-blogs.vercel.app' // We'll add this after creating the frontend deployment
+  'https://devnovate-blogs-mu.vercel.app'
 ];
 
 app.use(cors({
