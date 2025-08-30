@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import { AuthContext } from './AuthContext';
@@ -23,7 +23,7 @@ export const BlogProvider = ({ children }) => {
   const { user } = useContext(AuthContext);
 
   // Get all published blogs with pagination, search, and filtering
-  const getBlogs = async (page = 1, limit = 10, search = '', tag = '', author = '') => {
+  const getBlogs = useCallback(async (page = 1, limit = 10, search = '', tag = '', author = '') => {
     try {
       setLoading(true);
       setError(null); // Clear any previous errors
@@ -40,10 +40,10 @@ export const BlogProvider = ({ children }) => {
       
       setBlogs(blogsWithLikeStatus);
       setPagination({
-        page: res.data.page,
-        limit: res.data.limit,
-        total: res.data.total,
-        totalPages: res.data.totalPages
+        page: page,
+        limit: limit,
+        total: res.data.count,
+        totalPages: Math.ceil(res.data.count / limit)
       });
       
       return res.data;
@@ -54,10 +54,10 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id]);
 
   // Get trending blogs
-  const getTrendingBlogs = async () => {
+  const getTrendingBlogs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null); // Clear any previous errors
@@ -78,7 +78,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id]);
 
   // Get single blog by ID
   const getBlogById = async (id) => {
@@ -264,7 +264,7 @@ export const BlogProvider = ({ children }) => {
   };
 
   // Get user's blogs
-  const getUserBlogs = async () => {
+  const getUserBlogs = useCallback(async () => {
     if (!user) return [];
     
     try {
@@ -286,10 +286,10 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id]);
 
   // Get user's liked blogs
-  const getLikedBlogs = async () => {
+  const getLikedBlogs = useCallback(async () => {
     if (!user) return [];
     
     try {
@@ -310,12 +310,12 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id]);
 
   // Load trending blogs on initial render
   useEffect(() => {
     getTrendingBlogs();
-  }, []);
+  }, [getTrendingBlogs]);
 
   // Load user blogs when user changes
   useEffect(() => {
@@ -326,7 +326,7 @@ export const BlogProvider = ({ children }) => {
       setUserBlogs([]);
       setLikedBlogs([]);
     }
-  }, [user]);
+  }, [user, getUserBlogs, getLikedBlogs]);
 
   return (
     <BlogContext.Provider
