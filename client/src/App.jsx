@@ -23,6 +23,9 @@ import TestLogin from './pages/TestLogin';
 import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 
+// Debug Components
+import AuthDebug from './components/debug/AuthDebug';
+
 // Protected Routes
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import AdminRoute from './components/routing/AdminRoute';
@@ -36,6 +39,7 @@ function App() {
             <Navbar />
             <main className="flex-grow">
               <ToastContainer position="top-right" autoClose={3000} />
+              <AuthDebug />
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />

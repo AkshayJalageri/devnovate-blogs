@@ -36,8 +36,13 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    checkUserLoggedIn();
-  }, []);
+    // Only check authentication if we don't already have a user
+    if (!user) {
+      checkUserLoggedIn();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   // Register user
   const register = async (userData) => {
@@ -98,19 +103,30 @@ export const AuthProvider = ({ children }) => {
         console.log('✅ User set from login response:', res.data.user);
         toast.success('Login successful!');
         
-        // Wait a moment for cookies to be set, then verify authentication
-        setTimeout(async () => {
-          try {
-            const userRes = await api.get('/auth/me');
-            if (userRes.data.success) {
-              setUser(userRes.data.data);
-              console.log('✅ User authenticated after login:', userRes.data.data);
-            }
-          } catch (verifyErr) {
-            console.log('⚠️ Could not verify user after login:', verifyErr.message);
-            // User is still logged in from the login response
+        // Try to verify authentication immediately, then retry after a delay
+        try {
+          const userRes = await api.get('/auth/me');
+          if (userRes.data.success) {
+            setUser(userRes.data.data);
+            console.log('✅ User authenticated immediately after login:', userRes.data.data);
           }
-        }, 1000);
+        } catch (verifyErr) {
+          console.log('⚠️ Could not verify user immediately after login:', verifyErr.message);
+          
+          // Retry after a delay
+          setTimeout(async () => {
+            try {
+              const userRes = await api.get('/auth/me');
+              if (userRes.data.success) {
+                setUser(userRes.data.data);
+                console.log('✅ User authenticated after delay:', userRes.data.data);
+              }
+            } catch (retryErr) {
+              console.log('⚠️ Could not verify user after retry:', retryErr.message);
+              // User is still logged in from the login response
+            }
+          }, 2000);
+        }
         
         return true;
       } else {
@@ -191,6 +207,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Refresh user authentication status
+  const refreshAuth = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      if (res.data.success && res.data.data) {
+        setUser(res.data.data);
+        console.log('✅ User authentication refreshed:', res.data.data);
+        return true;
+      } else {
+        setUser(null);
+        return false;
+      }
+    } catch (err) {
+      console.log('⚠️ Could not refresh authentication:', err.message);
+      setUser(null);
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -203,6 +238,7 @@ export const AuthProvider = ({ children }) => {
         updateProfile,
         forgotPassword,
         resetPassword,
+        refreshAuth,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin'
       }}
