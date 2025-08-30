@@ -1,8 +1,23 @@
 import axios from 'axios';
 
-// Get API URL from environment variables (set this in Vercel: VITE_API_URL=https://devnovate-blogs-api.onrender.com/api)
-const API_URL =
-  import.meta.env.VITE_API_URL || 'https://devnovate-blogs-api.onrender.com/api';
+// Get API URL from environment variables with fallbacks
+const getApiUrl = () => {
+  // Check for Vercel environment variable first
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Check for production environment
+  if (import.meta.env.PROD) {
+    // Default to Render backend for production
+    return 'https://devnovate-blogs-api.onrender.com/api';
+  }
+  
+  // Development fallback
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getApiUrl();
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -10,7 +25,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  withCredentials: true
+  withCredentials: true,
+  timeout: 10000 // 10 second timeout
 });
 
 // Add a request interceptor to include auth token in requests
