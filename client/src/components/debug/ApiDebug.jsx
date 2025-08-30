@@ -30,18 +30,25 @@ const ApiDebug = () => {
     try {
       setTestResult({ status: 'testing', message: 'Testing API connection...' });
       
-      const response = await api.get('/health');
-      setTestResult({ 
-        status: 'success', 
-        message: 'API connection successful!',
-        data: response.data 
-      });
+      // Test the health endpoint at root level (not /api/health)
+      const response = await fetch('https://devnovate-blogs-api.onrender.com/health');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTestResult({ 
+          status: 'success', 
+          message: 'API connection successful!',
+          data: data 
+        });
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     } catch (error) {
       setTestResult({ 
         status: 'error', 
         message: 'API connection failed',
         error: error.message,
-        details: error.response?.data || error.config
+        details: error.response?.data || error.config || error.toString()
       });
     }
   };
