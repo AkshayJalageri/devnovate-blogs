@@ -79,6 +79,26 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 
+// Environment check endpoint for debugging
+app.get('/env-check', (req, res) => {
+  const jwtExpire = process.env.JWT_EXPIRE || 'not set (using default: 30 days)';
+  const jwtExpireSeconds = process.env.JWT_EXPIRE || (30 * 24 * 60 * 60);
+  
+  res.status(200).json({
+    status: 'Environment Check',
+    timestamp: new Date().toISOString(),
+    nodeEnv: process.env.NODE_ENV || 'not set',
+    mongoUri: process.env.MONGODB_URI ? 'set' : 'not set',
+    jwtSecret: process.env.JWT_SECRET ? 'set' : 'not set',
+    jwtExpire: jwtExpire,
+    jwtExpireSeconds: jwtExpireSeconds,
+    emailUsername: process.env.EMAIL_USERNAME ? 'set' : 'not set',
+    emailPassword: process.env.EMAIL_PASSWORD ? 'set' : 'not set',
+    clientUrl: process.env.CLIENT_URL || 'not set',
+    port: process.env.PORT || 'not set'
+  });
+});
+
 // Health check endpoint for deployment platforms
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -88,22 +108,6 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     clientUrl: process.env.CLIENT_URL || 'not set',
     allowedOrigins: uniqueOrigins
-  });
-});
-
-// Environment check endpoint for debugging
-app.get('/env-check', (req, res) => {
-  res.status(200).json({
-    status: 'Environment Check',
-    timestamp: new Date().toISOString(),
-    nodeEnv: process.env.NODE_ENV || 'not set',
-    mongoUri: process.env.MONGODB_URI ? 'set' : 'not set',
-    jwtSecret: process.env.JWT_SECRET ? 'set' : 'not set',
-    jwtExpire: process.env.JWT_EXPIRE || 'not set (using default)',
-    emailUsername: process.env.EMAIL_USERNAME ? 'set' : 'not set',
-    emailPassword: process.env.EMAIL_PASSWORD ? 'set' : 'not set',
-    clientUrl: process.env.CLIENT_URL || 'not set',
-    port: process.env.PORT || 'not set'
   });
 });
 
