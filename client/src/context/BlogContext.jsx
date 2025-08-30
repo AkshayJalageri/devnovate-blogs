@@ -63,7 +63,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [loading]); // Only depend on loading state
+  }, []); // No dependencies to prevent infinite loops
 
   // Get trending blogs
   const getTrendingBlogs = useCallback(async () => {
@@ -94,7 +94,7 @@ export const BlogProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [loading]); // Only depend on loading state
+  }, []); // No dependencies to prevent infinite loops
 
   // Get single blog by ID
   const getBlogById = async (id) => {
