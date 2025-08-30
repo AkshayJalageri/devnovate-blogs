@@ -8,8 +8,8 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   
-  // Check for production environment
-  if (import.meta.env.PROD) {
+  // Check for production environment or Vercel deployment
+  if (import.meta.env.PROD || window.location.hostname !== 'localhost') {
     // Default to Render backend for production
     const productionUrl = 'https://devnovate-blogs-api.onrender.com/api';
     console.log('🔧 Using production URL:', productionUrl);

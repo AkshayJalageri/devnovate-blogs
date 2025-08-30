@@ -14,7 +14,11 @@ const ApiDebug = () => {
         DEV: import.meta.env.DEV,
         MODE: import.meta.env.MODE,
         currentOrigin: window.location.origin,
-        userAgent: navigator.userAgent
+        hostname: window.location.hostname,
+        isLocalhost: window.location.hostname === 'localhost',
+        userAgent: navigator.userAgent,
+        // Determine what URL would be used
+        wouldUseProduction: import.meta.env.PROD || window.location.hostname !== 'localhost'
       };
       setApiInfo(info);
     };
@@ -56,6 +60,7 @@ const ApiDebug = () => {
             <li><strong>PROD:</strong> {apiInfo.PROD ? 'Yes' : 'No'}</li>
             <li><strong>DEV:</strong> {apiInfo.DEV ? 'Yes' : 'No'}</li>
             <li><strong>MODE:</strong> {apiInfo.MODE}</li>
+            <li><strong>Would Use Production:</strong> {apiInfo.wouldUseProduction ? 'Yes' : 'No'}</li>
           </ul>
         </div>
         
@@ -63,6 +68,8 @@ const ApiDebug = () => {
           <h4 className="font-semibold">Current Environment:</h4>
           <ul className="space-y-1">
             <li><strong>Origin:</strong> {apiInfo.currentOrigin}</li>
+            <li><strong>Hostname:</strong> {apiInfo.hostname}</li>
+            <li><strong>Is Localhost:</strong> {apiInfo.isLocalhost ? 'Yes' : 'No'}</li>
             <li><strong>User Agent:</strong> {apiInfo.userAgent.substring(0, 50)}...</li>
           </ul>
         </div>
