@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
-import { toast } from 'react-toastify';
 import { FiUsers, FiFileText, FiCheckCircle, FiXCircle, FiEye, FiAlertTriangle, FiCheck, FiX, FiTrash2 } from 'react-icons/fi';
 
 const AdminDashboard = () => {
@@ -15,13 +14,20 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (user?.role !== 'admin') return;
+    console.log('AdminDashboard useEffect triggered:', { user, activeTab });
+    
+    if (user?.role !== 'admin') {
+      console.log('User is not admin, returning early');
+      return;
+    }
     
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       
       try {
+        console.log('Fetching data for tab:', activeTab);
+        
         if (activeTab === 'dashboard') {
           const response = await api.get('/admin/stats');
           console.log('Stats response:', response.data);
@@ -41,6 +47,7 @@ const AdminDashboard = () => {
         }
       } catch (err) {
         console.error('Error fetching admin data:', err);
+        console.error('Error details:', err.response?.data);
         setError(err.response?.data?.message || 'An error occurred');
       } finally {
         setLoading(false);
@@ -59,7 +66,7 @@ const AdminDashboard = () => {
         // Update both lists after deletion
         setAllBlogs(allBlogs.filter(blog => blog._id !== blogId));
         setPendingBlogs(pendingBlogs.filter(blog => blog._id !== blogId));
-        toast.success('Blog deleted successfully');
+        console.log('Blog deleted successfully');
       } else {
         await api.put(
           `/admin/blogs/${blogId}/${action}`,
@@ -69,12 +76,12 @@ const AdminDashboard = () => {
         const updatedBlog = {...allBlogs.find(blog => blog._id === blogId), status: action === 'approve' ? 'published' : 'rejected'};
         setAllBlogs(allBlogs.map(blog => blog._id === blogId ? updatedBlog : blog));
         setPendingBlogs(pendingBlogs.filter(blog => blog._id !== blogId));
-        toast.success(`Blog ${action}d successfully`);
+        console.log(`Blog ${action}d successfully`);
       }
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'An error occurred';
       setError(errorMessage);
-      toast.error(errorMessage);
+      console.error(errorMessage);
     }
   };
 
@@ -95,11 +102,11 @@ const AdminDashboard = () => {
         return user;
       }));
       
-      toast.success(`User role updated to ${newRole}`);
+      console.log(`User role updated to ${newRole}`);
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'An error occurred';
       setError(errorMessage);
-      toast.error(errorMessage);
+      console.error(errorMessage);
     }
   };
 
