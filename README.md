@@ -106,11 +106,8 @@ The application will be available at:
 4. Deploy the frontend
 
 ## Admin Setup
-To create an admin user, run:
-\`\`\`bash
-cd server
-node scripts/createAdmin.js
-\`\`\`
+admin login : admin@devnovate.com
+admin password : Admin123456!
 
 ## License
 MIT License
