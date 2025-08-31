@@ -305,7 +305,7 @@ exports.getAdminStats = async (req, res, next) => {
       ]);
       totalViews = viewsData.length > 0 ? viewsData[0].total : 0;
     } catch (err) {
-      console.log('Analytics model not available or error calculating views');
+      // Analytics model not available
     }
 
     res.status(200).json({

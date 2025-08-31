@@ -17,7 +17,7 @@ import CreateBlog from './pages/CreateBlog';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
-import TestLogin from './pages/TestLogin';
+
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -41,7 +41,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/test-login" element={<TestLogin />} />
+
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />

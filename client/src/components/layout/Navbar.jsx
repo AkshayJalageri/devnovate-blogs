@@ -5,8 +5,11 @@ import { FiMenu, FiX, FiUser, FiLogOut, FiEdit, FiHome, FiSettings } from 'react
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, isAuthenticated, isAdmin, logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const isAuthenticated = !!user;
+  const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     logout();

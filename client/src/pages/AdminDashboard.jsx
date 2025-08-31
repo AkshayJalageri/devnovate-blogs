@@ -14,10 +14,7 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log('AdminDashboard useEffect triggered:', { user, activeTab });
-    
-    if (user?.role !== 'admin') {
-      console.log('User is not admin, returning early');
+    if (!user || user.role !== 'admin') {
       return;
     }
     
@@ -26,29 +23,30 @@ const AdminDashboard = () => {
       setError(null);
       
       try {
-        console.log('Fetching data for tab:', activeTab);
+        let response;
         
-        if (activeTab === 'dashboard') {
-          const response = await api.get('/admin/stats');
-          console.log('Stats response:', response.data);
-          setStats(response.data.data);
-        } else if (activeTab === 'pending-blogs') {
-          const response = await api.get('/admin/blogs/pending');
-          console.log('Pending blogs response:', response.data);
-          setPendingBlogs(response.data.data);
-        } else if (activeTab === 'all-blogs') {
-          const response = await api.get('/admin/blogs');
-          console.log('All blogs response:', response.data);
-          setAllBlogs(response.data.data);
-        } else if (activeTab === 'users') {
-          const response = await api.get('/admin/users');
-          console.log('Users response:', response.data);
-          setUsers(response.data.data);
+        switch (activeTab) {
+          case 'dashboard':
+            response = await api.get('/admin/stats');
+            setStats(response.data.data);
+            break;
+          case 'pending-blogs':
+            response = await api.get('/admin/blogs/pending');
+            setPendingBlogs(response.data.data);
+            break;
+          case 'all-blogs':
+            response = await api.get('/admin/blogs');
+            setAllBlogs(response.data.data);
+            break;
+          case 'users':
+            response = await api.get('/admin/users');
+            setUsers(response.data.data);
+            break;
+          default:
+            break;
         }
       } catch (err) {
-        console.error('Error fetching admin data:', err);
-        console.error('Error details:', err.response?.data);
-        setError(err.response?.data?.message || 'An error occurred');
+        setError(err.response?.data?.message || 'Failed to fetch data');
       } finally {
         setLoading(false);
       }
@@ -59,29 +57,19 @@ const AdminDashboard = () => {
 
   const handleBlogAction = async (blogId, action) => {
     try {
-      setError(null);
+      const response = await api.put(`/admin/blogs/${blogId}/${action}`);
       
-      if (action === 'delete') {
-        await api.delete(`/admin/blogs/${blogId}`);
-        // Update both lists after deletion
-        setAllBlogs(allBlogs.filter(blog => blog._id !== blogId));
-        setPendingBlogs(pendingBlogs.filter(blog => blog._id !== blogId));
-        console.log('Blog deleted successfully');
-      } else {
-        await api.put(
-          `/admin/blogs/${blogId}/${action}`,
-          {}
-        );
-        // For approve/reject actions
-        const updatedBlog = {...allBlogs.find(blog => blog._id === blogId), status: action === 'approve' ? 'published' : 'rejected'};
-        setAllBlogs(allBlogs.map(blog => blog._id === blogId ? updatedBlog : blog));
-        setPendingBlogs(pendingBlogs.filter(blog => blog._id !== blogId));
-        console.log(`Blog ${action}d successfully`);
+      if (response.data.success) {
+        // Refresh the current tab data
+        const currentResponse = await api.get(`/admin/blogs/${activeTab === 'pending-blogs' ? 'pending' : ''}`);
+        if (activeTab === 'pending-blogs') {
+          setPendingBlogs(currentResponse.data.data);
+        } else {
+          setAllBlogs(currentResponse.data.data);
+        }
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'An error occurred';
-      setError(errorMessage);
-      console.error(errorMessage);
+      setError(err.response?.data?.message || `Failed to ${action} blog`);
     }
   };
 
@@ -101,12 +89,8 @@ const AdminDashboard = () => {
         }
         return user;
       }));
-      
-      console.log(`User role updated to ${newRole}`);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'An error occurred';
-      setError(errorMessage);
-      console.error(errorMessage);
+      setError(err.response?.data?.message || 'Failed to update user role');
     }
   };
 

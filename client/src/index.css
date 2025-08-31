@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide debug panels and elements */
+[data-debug],
+[class*="debug"],
+[id*="debug"],
+[class*="Debug"],
+[id*="Debug"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
+
+/* Hide elements containing debug text */
+*:contains("🔧"),
+*:contains("🔍"),
+*:contains("API Debug"),
+*:contains("Auth Debug"),
+*:contains("Environment Variables"),
+*:contains("Test API Connection"),
+*:contains("Refresh Auth") {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Additional debug prevention */
+.debug-panel,
+.debug-info,
+.debug-container {
+  display: none !important;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

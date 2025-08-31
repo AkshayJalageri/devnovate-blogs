@@ -54,9 +54,6 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Log blocked origins for debugging
-    console.log('Blocked origin:', origin);
-    console.log('Allowed origins:', uniqueOrigins);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -79,25 +76,7 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 
-// Environment check endpoint for debugging
-app.get('/env-check', (req, res) => {
-  const jwtExpire = process.env.JWT_EXPIRE || 'not set (using default: 30 days)';
-  const jwtExpireSeconds = process.env.JWT_EXPIRE || (30 * 24 * 60 * 60);
-  
-  res.status(200).json({
-    status: 'Environment Check',
-    timestamp: new Date().toISOString(),
-    nodeEnv: process.env.NODE_ENV || 'not set',
-    mongoUri: process.env.MONGODB_URI ? 'set' : 'not set',
-    jwtSecret: process.env.JWT_SECRET ? 'set' : 'not set',
-    jwtExpire: jwtExpire,
-    jwtExpireSeconds: jwtExpireSeconds,
-    emailUsername: process.env.EMAIL_USERNAME ? 'set' : 'not set',
-    emailPassword: process.env.EMAIL_PASSWORD ? 'set' : 'not set',
-    clientUrl: process.env.CLIENT_URL || 'not set',
-    port: process.env.PORT || 'not set'
-  });
-});
+
 
 // Health check endpoint for deployment platforms
 app.get('/health', (req, res) => {
@@ -105,9 +84,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    clientUrl: process.env.CLIENT_URL || 'not set',
-    allowedOrigins: uniqueOrigins
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -135,9 +112,6 @@ mongoose
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`Client URL: ${process.env.CLIENT_URL || 'not set'}`);
-      console.log(`Allowed origins: ${uniqueOrigins.join(', ')}`);
     });
   })
   .catch((err) => {

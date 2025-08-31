@@ -4,17 +4,19 @@ import { AuthContext } from '../context/AuthContext';
 import { FiUser, FiMail, FiLock, FiAlertCircle } from 'react-icons/fi';
 
 const Register = () => {
+  const { register, loading } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-  const [formErrors, setFormErrors] = useState({});
-  const { register, isAuthenticated, loading } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
 
-  // Redirect if already authenticated
+  const { user } = useContext(AuthContext);
+  const isAuthenticated = !!user;
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
@@ -28,9 +30,9 @@ const Register = () => {
     });
     
     // Clear error when user starts typing
-    if (formErrors[e.target.name]) {
-      setFormErrors({
-        ...formErrors,
+    if (errors[e.target.name]) {
+      setErrors({
+        ...errors,
         [e.target.name]: ''
       });
     }
@@ -64,7 +66,7 @@ const Register = () => {
       errors.confirmPassword = 'Passwords do not match';
     }
     
-    setFormErrors(errors);
+    setErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -105,13 +107,13 @@ const Register = () => {
                   autoComplete="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${formErrors.name ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${errors.name ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
                   placeholder="Full Name"
                 />
               </div>
-              {formErrors.name && (
+              {errors.name && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <FiAlertCircle className="mr-1" /> {formErrors.name}
+                  <FiAlertCircle className="mr-1" /> {errors.name}
                 </p>
               )}
             </div>
@@ -129,13 +131,13 @@ const Register = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${formErrors.email ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
                   placeholder="Email address"
                 />
               </div>
-              {formErrors.email && (
+              {errors.email && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <FiAlertCircle className="mr-1" /> {formErrors.email}
+                  <FiAlertCircle className="mr-1" /> {errors.email}
                 </p>
               )}
             </div>
@@ -153,13 +155,13 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${formErrors.password ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${errors.password ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
                   placeholder="Password"
                 />
               </div>
-              {formErrors.password && (
+              {errors.password && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <FiAlertCircle className="mr-1" /> {formErrors.password}
+                  <FiAlertCircle className="mr-1" /> {errors.password}
                 </p>
               )}
             </div>
@@ -177,13 +179,13 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${formErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
                   placeholder="Confirm Password"
                 />
               </div>
-              {formErrors.confirmPassword && (
+              {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <FiAlertCircle className="mr-1" /> {formErrors.confirmPassword}
+                  <FiAlertCircle className="mr-1" /> {errors.confirmPassword}
                 </p>
               )}
             </div>

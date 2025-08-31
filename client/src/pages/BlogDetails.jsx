@@ -10,13 +10,15 @@ const BlogDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getBlogById, currentBlog, loading, likeBlog, addComment, deleteBlog } = useContext(BlogContext);
-  const { user, isAuthenticated } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [comment, setComment] = useState('');
   const [commentError, setCommentError] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
   const isMounted = useRef(true);
   const previousId = useRef(id);
+
+  const isAuthenticated = !!user;
 
   // Create a memoized fetch function to prevent unnecessary re-renders
   const fetchBlog = useCallback(async () => {
@@ -31,10 +33,9 @@ const BlogDetails = () => {
       if (isMounted.current && (!hasFetched || previousId.current !== id)) {
         const blog = await getBlogById(id);
         if (isMounted.current) {
-          if (!blog) {
-            console.error('Blog not found or error fetching blog');
-            // Don't navigate away, let the UI handle the error state
-          }
+                  if (!blog) {
+          // Don't navigate away, let the UI handle the error state
+        }
           // Mark as fetched and update previous ID
           setHasFetched(true);
           previousId.current = id;
@@ -42,7 +43,6 @@ const BlogDetails = () => {
       }
     } catch (error) {
       if (isMounted.current) {
-        console.error('Error in fetchBlog:', error);
         // Don't navigate away, let the UI handle the error state
       }
     }
@@ -81,7 +81,7 @@ const BlogDetails = () => {
         toast.success(result.isLiked ? 'Blog liked successfully' : 'Blog unliked successfully');
       }
     } catch (error) {
-      console.error('Error in handleLike:', error);
+      // Handle error silently
     }
   };
 

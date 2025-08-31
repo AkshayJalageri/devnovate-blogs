@@ -4,15 +4,17 @@ import { AuthContext } from '../context/AuthContext';
 import { FiMail, FiLock, FiAlertCircle } from 'react-icons/fi';
 
 const Login = () => {
+  const { login, loading } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [formErrors, setFormErrors] = useState({});
-  const { login, isAuthenticated, loading } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
 
-  // Redirect if already authenticated
+  const { user } = useContext(AuthContext);
+  const isAuthenticated = !!user;
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
@@ -26,9 +28,9 @@ const Login = () => {
     });
     
     // Clear error when user starts typing
-    if (formErrors[e.target.name]) {
-      setFormErrors({
-        ...formErrors,
+    if (errors[e.target.name]) {
+      setErrors({
+        ...errors,
         [e.target.name]: ''
       });
     }
@@ -50,7 +52,7 @@ const Login = () => {
       errors.password = 'Password is required';
     }
     
-    setFormErrors(errors);
+    setErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -59,7 +61,6 @@ const Login = () => {
     
     if (validateForm()) {
       const { email, password } = formData;
-      console.log('Login form submitted with:', { email, password: '********' });
       await login(email, password);
     }
   };
@@ -92,13 +93,13 @@ const Login = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${formErrors.email ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
                   placeholder="Email address"
                 />
               </div>
-              {formErrors.email && (
+              {errors.email && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <FiAlertCircle className="mr-1" /> {formErrors.email}
+                  <FiAlertCircle className="mr-1" /> {errors.email}
                 </p>
               )}
             </div>
@@ -116,13 +117,13 @@ const Login = () => {
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${formErrors.password ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  className={`appearance-none rounded-md relative block w-full pl-10 pr-3 py-2 border ${errors.password ? 'border-red-300' : 'border-gray-300'} placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
                   placeholder="Password"
                 />
               </div>
-              {formErrors.password && (
+              {errors.password && (
                 <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <FiAlertCircle className="mr-1" /> {formErrors.password}
+                  <FiAlertCircle className="mr-1" /> {errors.password}
                 </p>
               )}
             </div>

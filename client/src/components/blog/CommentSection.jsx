@@ -6,39 +6,40 @@ import { FiSend, FiMessageSquare } from 'react-icons/fi';
 import TextArea from '../ui/TextArea';
 import Button from '../ui/Button';
 
-const CommentSection = ({ blogId, comments: initialComments = [] }) => {
-  const { user, isAuthenticated } = useContext(AuthContext);
+const CommentSection = ({ blogId, comments, onCommentAdded }) => {
+  const { user } = useContext(AuthContext);
   const { addComment } = useContext(BlogContext);
   
-  const [comments, setComments] = useState(initialComments);
-  const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [comment, setComment] = useState('');
+  const [commentError, setCommentError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const isAuthenticated = !!user;
   
   const handleCommentChange = (e) => {
-    setNewComment(e.target.value);
-    if (error) setError('');
+    setComment(e.target.value);
+    if (commentError) setCommentError('');
   };
   
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     
-    if (!newComment.trim()) {
-      setError('Comment cannot be empty');
+    if (!comment.trim()) {
+      setCommentError('Comment cannot be empty');
       return;
     }
     
-    setIsSubmitting(true);
-    setError('');
+    setSubmitting(true);
+    setCommentError('');
     
     try {
-      const result = await addComment(blogId, newComment);
-      setComments([result, ...comments]);
-      setNewComment('');
+      const result = await addComment(blogId, comment);
+      onCommentAdded(result);
+      setComment('');
     } catch (err) {
-      setError(err.message || 'Failed to add comment');
+      setCommentError(err.message || 'Failed to add comment');
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
   
@@ -65,20 +66,20 @@ const CommentSection = ({ blogId, comments: initialComments = [] }) => {
             )}
             <div className="flex-1">
               <TextArea
-                value={newComment}
+                value={comment}
                 onChange={handleCommentChange}
                 placeholder="Add a comment..."
                 rows={3}
-                error={error}
+                error={commentError}
                 className="mb-2"
               />
               <div className="flex justify-end">
                 <Button 
                   type="submit" 
-                  disabled={isSubmitting} 
+                  disabled={submitting} 
                   icon={<FiSend />}
                 >
-                  {isSubmitting ? 'Posting...' : 'Post Comment'}
+                  {submitting ? 'Posting...' : 'Post Comment'}
                 </Button>
               </div>
             </div>
